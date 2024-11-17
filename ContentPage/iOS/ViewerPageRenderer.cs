@@ -33,7 +33,7 @@ namespace CustomRenderer.iOS
             try
             {
                 SetupUserInterface();
-                SetupEventHandlers();
+                //SetupEventHandlers();
             }
             catch (Exception ex)
             {
@@ -56,37 +56,32 @@ namespace CustomRenderer.iOS
             base.ViewWillTransitionToSize(toSize, coordinator);
         }
 
+      
         void SetupUserInterface()
         {
             CGRect viewRect = new CGRect(0, 0, View.Frame.Size.Width, View.Frame.Size.Height);
-            mPdfViewCtrl = new pdftron.PDF.PDFViewCtrl(viewRect);
+            mPdfViewCtrl = new pdftron.PDF.PDFViewCtrl();
 
-            mPdfViewCtrl.SetupThumbnails(false, true, true, 0, 500 * 1024 * 1024, 0.5);
-            View.AddSubview(mPdfViewCtrl);
+            var m_toolManager = new PTToolManager(mPdfViewCtrl);
+            mPdfViewCtrl.ToolManager = m_toolManager;
 
-            mPdfViewCtrl.TranslatesAutoresizingMaskIntoConstraints = false;
-            NSLayoutConstraint.ActivateConstraints(new NSLayoutConstraint[] {
-                mPdfViewCtrl.LeadingAnchor.ConstraintEqualTo(this.View.LeadingAnchor),
-                mPdfViewCtrl.WidthAnchor.ConstraintEqualTo(this.View.WidthAnchor),
-                mPdfViewCtrl.TopAnchor.ConstraintEqualTo(this.View.LayoutMarginsGuide.TopAnchor),
-                mPdfViewCtrl.BottomAnchor.ConstraintEqualTo(this.View.BottomAnchor)
-            });
-
-            var docPath = "sample.pdf";
-            mPdfDoc = new PDFDoc(docPath);
-            mPdfViewCtrl.Doc = TypeConvertHelper.ConvPDFDocToNative(mPdfDoc);
-            mPdfViewCtrl.PagePresentationMode = PagePresentationModes.e_single_page;
-            mPdfViewCtrl.SetHighlightFields(true);
-
-            mToolManager = new PTToolManager(mPdfViewCtrl);
-            mPdfViewCtrl.ToolManager = mToolManager;
-
-            bool isIOS11 = UIDevice.CurrentDevice.CheckSystemVersion(11, 0);
-            var bottomAnchor = this.View.BottomAnchor;
-            if (isIOS11)
+            var m_annotationToolbar = new PTAnnotationToolbar(m_toolManager);
+            
+      
+ 
+            // Create a UIStackView to hold the annotation toolbar
+            var stackView = new UIStackView(viewRect)
             {
-                bottomAnchor = this.View.SafeAreaLayoutGuide.BottomAnchor;
-            }
+                Spacing = 0,
+                Axis = UILayoutConstraintAxis.Vertical,
+
+            };
+
+            stackView.AddArrangedSubview(m_annotationToolbar);
+
+
+            View.AddSubview(stackView);
+
         }
         void SetupEventHandlers()
             {
